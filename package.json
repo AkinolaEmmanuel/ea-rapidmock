@@ -1,0 +1,41 @@
+{
+  "name": "ea-rapidmock",
+  "version": "0.6.0",
+  "description": "Local-first Chrome extension for test identities, form filling, and mock JSON.",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "check": "tsc --noEmit",
+    "test": "vitest run",
+    "preview": "vite preview --host 127.0.0.1",
+    "server": "node --env-file-if-exists=.env backend/index.mjs",
+    "cf:dev": "wrangler dev --local",
+    "cf:check": "wrangler deploy --dry-run --outdir cloudflare/.dry-run",
+    "cf:db:create": "wrangler d1 create ea-rapidmock-mail",
+    "cf:db:local": "wrangler d1 migrations apply ea-rapidmock-mail --local",
+    "cf:db:remote": "wrangler d1 migrations apply ea-rapidmock-mail --remote",
+    "cf:deploy": "wrangler deploy"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@faker-js/faker": "^10.6.0",
+    "postal-mime": "^4.2.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "private": true,
+  "devDependencies": {
+    "@types/chrome": "^0.3.7",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "jsdom": "^31.0.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0",
+    "wrangler": "^4.163.0"
+  }
+}

@@ -1,0 +1,23 @@
+// Run only against Wrangler's local simulation; it never sends an SMTP email.
+import assert from 'node:assert/strict';
+const base = process.env.CF_LOCAL_URL || 'http://127.0.0.1:8791';
+if (!['127.0.0.1', 'localhost', '[::1]'].includes(new URL(base).hostname)) throw new Error('This smoke check is limited to loopback services.');
+const code = 'local-test-invitation-only-not-for-deployment';
+const enroll = await fetch(`${base}/v1/installations`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enrollmentCode: code }) });
+assert.equal(enroll.status, 201, 'Enrollment should succeed in the local Worker.');
+const { token } = await enroll.json();
+const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
+const create = await fetch(`${base}/v1/mailboxes`, { method: 'POST', headers, body: JSON.stringify({ identityId: crypto.randomUUID() }) });
+assert.equal(create.status, 201);
+const box = await create.json();
+const email = `From: Local Test <sender@example.com>\r\nTo: ${box.address}\r\nSubject: Local Cloudflare verification\r\nMessage-ID: <${crypto.randomUUID()}@example.com>\r\nContent-Type: text/plain; charset=utf-8\r\n\r\nYour verification code is 918273.\r\n`;
+const delivery = await fetch(`${base}/cdn-cgi/local/email?from=sender%40example.com&to=${encodeURIComponent(box.address)}`, { method: 'POST', body: email });
+assert.equal(delivery.status, 200, `Local simulated delivery failed: ${await delivery.text()}`);
+const inbox = await fetch(`${base}/v1/mailboxes/${box.id}/messages`, { headers });
+const result = await inbox.json();
+assert.equal(result.messages.length, 1);
+const detail = await fetch(`${base}/v1/mailboxes/${box.id}/messages/${result.messages[0].id}`, { headers });
+assert.match((await detail.json()).text, /918273/);
+const deleted = await fetch(`${base}/v1/mailboxes/${box.id}`, { method: 'DELETE', headers });
+assert.equal(deleted.status, 200);
+console.log('Cloudflare local runtime: enrollment, D1 allocation, MIME delivery, authenticated retrieval, and deletion passed.');

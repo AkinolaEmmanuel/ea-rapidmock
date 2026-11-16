@@ -1,0 +1,24 @@
+name = "ea-rapidmock-mail"
+account_id = "59edd4f406cbce66ac8ceae727e1c783"
+main = "cloudflare/worker.mjs"
+compatibility_date = "2026-11-16"
+workers_dev = true
+routes = [{ pattern = "mail-api.polowo.store", custom_domain = true }]
+addresses = ["receive@inbox.polowo.store", "m@inbox.polowo.store"]
+
+[vars]
+MAIL_DOMAIN = "inbox.polowo.store"
+MAIL_LOCAL_PREFIX = "m"
+MAILBOX_TTL_MINUTES = "60"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ea-rapidmock-mail"
+database_id = "03a5d422-a665-43d8-9c08-be053d7e65ef"
+migrations_dir = "cloudflare/migrations"
+
+[triggers]
+crons = ["*/15 * * * *"]
+
+[observability]
+enabled = false

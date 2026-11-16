@@ -1,0 +1,2 @@
+# Copy to .dev.vars in the repository root for local Worker testing.
+ENROLLMENT_CODE=replace-with-a-long-random-invitation-code

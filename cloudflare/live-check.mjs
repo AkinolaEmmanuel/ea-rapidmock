@@ -1,0 +1,22 @@
+// Validates the deployed API without sending email or printing credentials.
+import { readFileSync } from 'node:fs';
+import assert from 'node:assert/strict';
+const base = 'https://mail-api.polowo.store';
+const enrollmentCode = readFileSync(new URL('../.mailbox-invitation.txt', import.meta.url), 'utf8').trim();
+const health = await fetch(`${base}/health`); assert.equal(health.status, 200);
+assert.equal((await health.json()).domain, 'inbox.polowo.store');
+const enrolled = await fetch(`${base}/v1/installations`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enrollmentCode }) });
+assert.equal(enrolled.status, 201, 'Live enrollment failed.');
+const { token } = await enrolled.json();
+const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
+const allocated = await fetch(`${base}/v1/mailboxes`, { method: 'POST', headers, body: JSON.stringify({ identityId: crypto.randomUUID() }) });
+assert.equal(allocated.status, 201, 'Live mailbox allocation failed.');
+const box = await allocated.json();
+assert.match(box.address, /^m\+[0123456789abcdefghjkmnpqrstvwxyz]{12}@inbox\.polowo\.store$/);
+const inbox = await fetch(`${base}/v1/mailboxes/${box.id}/messages`, { headers }); assert.equal(inbox.status, 200);
+assert.deepEqual((await inbox.json()).messages, []);
+const cleared = await fetch(`${base}/v1/mailboxes/${box.id}/messages`, { method: 'DELETE', headers }); assert.equal(cleared.status, 200);
+const retained = await fetch(`${base}/v1/mailboxes/${box.id}/messages`, { headers }); assert.equal(retained.status, 200);
+assert.equal((await retained.json()).mailbox.address, box.address);
+const deleted = await fetch(`${base}/v1/mailboxes/${box.id}`, { method: 'DELETE', headers }); assert.equal(deleted.status, 200);
+console.log('Live API verified: health, invitation enrollment, mailbox allocation, inbox access, and test mailbox deletion.');

@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "EA RapidMock",
+  "version": "0.6.0",
+  "description": "Coherent test identities, thoughtful form filling, and reproducible JSON datasets.",
+  "minimum_chrome_version": "116",
+  "permissions": [
+    "sidePanel",
+    "storage",
+    "activeTab",
+    "scripting",
+    "tabs"
+  ],
+  "optional_host_permissions": [
+    "http://*/*",
+    "https://*/*",
+    "file:///*"
+  ],
+  "action": {
+    "default_title": "Open EA RapidMock"
+  },
+  "side_panel": {
+    "default_path": "index.html"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  }
+}

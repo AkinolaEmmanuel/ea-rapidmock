@@ -1,0 +1,22 @@
+services:
+  mailbox:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file: .env
+    environment:
+      HOST: 0.0.0.0
+      PORT: 8787
+      DATABASE_PATH: /data/mailboxes.sqlite
+    ports:
+      - "127.0.0.1:8787:8787"
+    volumes:
+      - mailbox-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8787/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+volumes:
+  mailbox-data:
